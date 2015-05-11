@@ -39,16 +39,16 @@ Definition FiveStagePipelineStages := [
   (** 0 *) "Fetch";
   (** 1 *) "Decode";
   (** 2 *) "Execute0";
-  (** 10 *) "Execute1";
   (** 3 *) "MemoryStage0";
-  (** 11 *) "MemoryStage1";
   (** 4 *) "Writeback0";
-  (** 12 *) "Writeback1";
   (** 5 *) "StoreBufferOnly";
   (** 6 *) "L1 ViCL Create";
   (** 7 *) "L1 ViCL Invalidate";
   (** 8 *) "L2 ViCL Create";
-  (** 9 *) "L2 ViCL Invalidate"].
+  (** 9 *) "L2 ViCL Invalidate";
+  (** 10 *) "Execute1";
+  (** 11 *) "MemoryStage1";
+  (** 12 *) "Writeback1"].
 
 Definition FiveStagePipelineL1ComplPropagations_pipe0 (n : PipeID) :=
   (** ((a, b), (c, d)) means "if there are instructions [i1] and [i2] such that
@@ -60,6 +60,7 @@ Definition FiveStagePipelineL1ComplPropagations_pipe0 (n : PipeID) :=
    (((n, 3), (n, 3)), ((n, 4), (n, 4)));  (* Memory -> Writeback *)
    (((n, 4), (n, 4)), ((n, 5), (n, 5)));  (* Writeback -> StoreBuffer *)
    (((n, 5), (n, 5)), ((n, 6), (n, 5)));  (* StoreBuffer one at a time to L1 *)
+   (((n, 1), (n, 1)), ((n, 2), (n, 10)));
    (((n, 10), (n, 2)), ((n, 11), (n, 3))); (* keep mem ops in order between lanes *)
    (((n, 11), (n, 3)), ((n, 12), (n, 4)));
    (((n, 12), (n, 4)), ((n, 5), (n, 5)));
@@ -78,6 +79,7 @@ Definition FiveStagePipelineL1ComplPropagations_pipe1 (n : PipeID) :=
    (((n, 11), (n, 11)), ((n, 12), (n, 12)));  (* Memory1 -> Writeback1 *)
    (((n, 12), (n, 12)), ((n, 5), (n, 5)));  (* Writeback1 -> StoreBuffer *)
    (((n, 5), (n, 5)), ((n, 6), (n, 5)));   (* StoreBuffer one at a time to L1 *)
+   (((n, 1), (n, 1)), ((n, 10), (n, 2)));
    (((n, 10), (n, 2)), ((n, 11), (n, 3))); (* keep mem ops in order between lanes *)
    (((n, 11), (n, 3)), ((n, 12), (n, 4)));
    (((n, 12), (n, 4)), ((n, 5), (n, 5)));
@@ -96,6 +98,7 @@ Definition FiveStagePipelineL2ComplPropagations_pipe0 (n : PipeID) :=
    (((n, 3), (n, 3)), ((n, 4), (n, 4)));  (* Memory -> Writeback *)
    (((n, 4), (n, 4)), ((n, 5), (n, 5)));  (* Writeback -> StoreBuffer *)
    (((n, 5), (n, 5)), ((n, 8), (n, 5)));   (* StoreBuffer one at a time to L2 *)
+   (((n, 1), (n, 1)), ((n, 2), (n, 10)));
    (((n, 10), (n, 2)), ((n, 11), (n, 3))); (* keep mem ops in order between lanes *)
    (((n, 11), (n, 3)), ((n, 12), (n, 4)));
    (((n, 12), (n, 4)), ((n, 5), (n, 5)));
@@ -114,6 +117,7 @@ Definition FiveStagePipelineL2ComplPropagations_pipe1 (n : PipeID) :=
    (((n, 11), (n, 11)), ((n, 12), (n, 12)));  (* Memory1 -> Writeback1 *)
    (((n, 12), (n, 12)), ((n, 5), (n, 5)));    (* Writeback1 -> StoreBuffer *)
    (((n, 5), (n, 5)), ((n, 8), (n, 5)));       (* StoreBuffer one at a time to L1 *)
+   (((n, 1), (n, 1)), ((n, 10), (n, 2)));
    (((n, 10), (n, 2)), ((n, 11), (n, 3))); (* keep mem ops in order between lanes *)
    (((n, 11), (n, 3)), ((n, 12), (n, 4)));
    (((n, 12), (n, 4)), ((n, 5), (n, 5)));
