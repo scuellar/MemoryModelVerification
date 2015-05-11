@@ -21,10 +21,12 @@
 (******************************************************************************)
 
 Require Import List.
+Require Import Arith.
 Require Import String.
 Require Import Util.
 Require Import Instruction.
 Require Import Processor.
+Require Import Graph.
 
 Import ListNotations.
 Open Scope string_scope.
