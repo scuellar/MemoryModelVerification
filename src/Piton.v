@@ -47,15 +47,23 @@ Definition CorePipelineStages := [
   (** 8 *) "L1 ViCL Create";
   (** 9 *) "L1 ViCL Invalidate";
   (** 10 *) "L1.5 ViCL Create";
+<<<<<<< HEAD
   (** 11 *) "L1.5 ViCL Invalidate"].
+=======
+  (** 11 *) "L1.5 ViCL Invalidate" ].
+>>>>>>> 3f20f6e5b1c153134b0be59fd3916403d006eb68
 
 Definition LoadMissPipelineStages := [                          
   (** 12 *) "Execute-LM";
   (** 13 *) "MemoryStage-LM";
+<<<<<<< HEAD
   (** 14 *) "Writeback-LM";
   (** 15 *) "L2 StoreBuffer";
   (** 16 *) "L2 ViCL Create";
   (** 17 *) "L2 ViCL Invalidate"].
+=======
+  (** 14 *) "Writeback-LM"].
+>>>>>>> 3f20f6e5b1c153134b0be59fd3916403d006eb68
 
 Definition PitonPipelineStages:= (CorePipelineStages ++ LoadMissPipelineStages)%list.
 
@@ -69,9 +77,14 @@ Definition PitonPipelineL1ComplPropagations (n : PipeID) :=
    (((n, 3), (n, 3)), ((n, 4), (n, 4)));  (* Memory -> Writeback *)
    (((n, 4), (n, 4)), ((n, 5), (n, 5)));  (* Writeback -> StoreBuffer *)
    (((n, 5), (n, 5)), ((n, 6), (n, 6)));  (* Writeback -> StoreBuffer *)
+<<<<<<< HEAD
    (((n, 6), (n, 6)), ((n, 8), (n, 6)));   (* StoreBuffer one at a time to L1 *)
    (((n, 6), (n, 6)), ((n, 10), (n, 6)));   (* StoreBuffer one at a time to L1.5 *)
    (((n, 15), (n, 15)), ((n, 16), (n, 15)))   (* StoreBuffer one at a time to L2 *)
+=======
+   (((n, 6), (n, 6)), ((n, 8), (n, 6)));   (* StoreBuffer one at a time to L2 *)
+   (((n, 6), (n, 6)), ((n, 10), (n, 6)))   (* StoreBuffer one at a time to L2 *)
+>>>>>>> 3f20f6e5b1c153134b0be59fd3916403d006eb68
   ].
 
 Definition LoadMissPipelineComplPropagations (n : PipeID) :=
@@ -85,8 +98,12 @@ Definition LoadMissPipelineComplPropagations (n : PipeID) :=
     (((n, 4), (n, 4)), ((n, 7), (n, 4)));  (* Writeback -> StoreBuffer *)
     (((n, 7), (n, 4)), ((n, 12), (n, 4)));  (* Writeback -> StoreBuffer *)
     (((n, 12), (n, 4)), ((n, 13), (n, 4)));  (* Writeback -> StoreBuffer *)
+<<<<<<< HEAD
     (((n, 13), (n, 4)), ((n, 14), (n, 5)));  (* Writeback -> StoreBuffer *) (*TODO:true?*)
     (((n, 15), (n, 15)), ((n, 16), (n, 15)))   (* StoreBuffer one at a time to L2 *)
+=======
+    (((n, 13), (n, 4)), ((n, 14), (n, 5)))  (* Writeback -> StoreBuffer *) (*TODO:true?*)
+>>>>>>> 3f20f6e5b1c153134b0be59fd3916403d006eb68
   ].
 
 Definition PitonPerformEdgeInterpretation :=
@@ -98,6 +115,7 @@ Definition PitonPerformEdgeInterpretation :=
     (** WS: ViCL Inv -> ViCL Create over the cross product of L1 and L2 *)
     [((fst e, (threadID (fst e), 9)), (snd e, (threadID (snd e), 8)), "WS");
      ((fst e, (threadID (fst e), 11)), (snd e, (threadID (snd e), 8)), "WS");
+<<<<<<< HEAD
      ((fst e, (threadID (fst e), 17)), (snd e, (threadID (snd e), 8)), "WS");
      ((fst e, (threadID (fst e), 9)), (snd e, (threadID (snd e), 10)), "WS");
      ((fst e, (threadID (fst e), 11)), (snd e, (threadID (snd e), 10)), "WS");
@@ -105,6 +123,10 @@ Definition PitonPerformEdgeInterpretation :=
      ((fst e, (threadID (fst e), 9)), (snd e, (threadID (snd e), 16)), "WS");
      ((fst e, (threadID (fst e), 11)), (snd e, (threadID (snd e), 16)), "WS");
      ((fst e, (threadID (fst e), 17)), (snd e, (threadID (snd e), 16)), "WS")
+=======
+     ((fst e, (threadID (fst e), 9)), (snd e, (threadID (snd e), 10)), "WS");
+     ((fst e, (threadID (fst e), 11)), (snd e, (threadID (snd e), 10)), "WS")
+>>>>>>> 3f20f6e5b1c153134b0be59fd3916403d006eb68
     ])
   (fun e =>
     (** FR: ViCL Invalidate -> ViCL Create over the cross product of L1 and L2 *)
@@ -116,7 +138,11 @@ Definition PitonMicroopPaths
   : list MicroopPath :=
   match access i with
   | Read  _ _ => [
+<<<<<<< HEAD
      mkMicroopPath "ReadFromL1StoreBuffer"
+=======
+     mkMicroopPath "ReadFromStoreBuffer"
+>>>>>>> 3f20f6e5b1c153134b0be59fd3916403d006eb68
          (StraightLine n [0; 1; 2; 3; 4; 5])
          (PitonPipelineL1ComplPropagations n)
          [ReadsBetween WritesOnly (n, 4) (n, 4) (n, 8)]
@@ -125,17 +151,26 @@ Definition PitonMicroopPaths
          (StraightLine n [0; 1; 2; 3; 4; 5])
          (PitonPipelineL1ComplPropagations n)
          [ReadsBetween AnyAccess (n, 8) (n, 4) (n, 9);
+<<<<<<< HEAD
            FlushThread WritesOnly [(n, 8);(n, 10); (n,16)] (n, 4)] (* STB must be empty *)
+=======
+           FlushThread WritesOnly [(n, 8);(n, 10)] (n, 4)] (* STB must be empty *)
+>>>>>>> 3f20f6e5b1c153134b0be59fd3916403d006eb68
          PitonPerformEdgeInterpretation;
      mkMicroopPath "CachePseudoMiss" (*Hit but no ViCL valid*)
          (StraightLine n [0; 1; 2; 3; 4; 5] ++ StraightLine n [8; 4; 9])
          (PitonPipelineL1ComplPropagations n)
+<<<<<<< HEAD
          [FlushThread WritesOnly [(n, 8);(n, 10); (n,16)] (n, 4)] (* STB must be empty *)
+=======
+         [FlushThread WritesOnly [(n, 8);(n, 10)] (n, 4)] (* STB must be empty *)
+>>>>>>> 3f20f6e5b1c153134b0be59fd3916403d006eb68
            PitonPerformEdgeInterpretation;
      mkMicroopPath "CacheLMQHitL1.5"
          (StraightLine n [0; 1; 2; 3; 4; 7; 12; 13; 14] ++ StraightLine n [8; 13; 9])
          (LoadMissPipelineComplPropagations n)
          [ReadsBetween AnyAccess (n, 10) (n, 4) (n, 11);
+<<<<<<< HEAD
            FlushThread WritesOnly [(n, 8);(n, 10); (n,16)] (n, 4)] (* STB must be empty *)
            PitonPerformEdgeInterpretation;
      mkMicroopPath "CacheLMQPseudoMissL1.5" (*Hit but no ViCL valid*)
@@ -165,11 +200,29 @@ Definition PitonMicroopPaths
          (StraightLine n [0; 1; 2; 3; 4; 7; 10; 11; 12] ++ StraightLine n [8; 11; 9])
          (LoadMissPipelineComplPropagations n)
          [FlushThread WritesOnly [(n, 8);(n, 10); (n,16)] (n, 4)] (* STB must be empty *)
+=======
+           FlushThread WritesOnly [(n, 8);(n, 10)] (n, 4)] (* STB must be empty *)
+           PitonPerformEdgeInterpretation;
+     mkMicroopPath "CacheLMQPseudoMissL1.5" (*Hit but no ViCL valid*)
+         (StraightLine n [0; 1; 2; 3; 4; 7; 12; 13; 14] ++ StraightLine n [10; 8; 13; 9]
+         ++ StraightLine n [10; 11])
+         (LoadMissPipelineComplPropagations n)
+         [FlushThread WritesOnly [(n, 8);(n, 10)] (n, 4)] (* STB must be empty *)
+           PitonPerformEdgeInterpretation
+    (* ; mkMicroopPath "CacheLMQMissL1.5"
+         (StraightLine n [0; 1; 2; 3; 4; 7; 10; 11; 12] ++ StraightLine n [8; 11; 9])
+         (LoadMissPipelineComplPropagations n)
+         [FlushThread WritesOnly [(n, 8);(n, 10)] (n, 4)] (* STB must be empty *)
+>>>>>>> 3f20f6e5b1c153134b0be59fd3916403d006eb68
            PitonPerformEdgeInterpretation*) (*Makes no difference wihtout memory or L2*)
      ]
  | Write _ _ => [
      mkMicroopPath "WriteL1L2"
+<<<<<<< HEAD
        (StraightLine n [0; 1; 2; 3; 4; 5; 6; 8; 9; 10; 11; 15; 16; 17])
+=======
+       (StraightLine n [0; 1; 2; 3; 4; 5; 6; 8; 9; 10; 11])
+>>>>>>> 3f20f6e5b1c153134b0be59fd3916403d006eb68
        (PitonPipelineL1ComplPropagations n)
        []
        PitonPerformEdgeInterpretation;
@@ -183,7 +236,11 @@ Definition PitonMicroopPaths
      mkMicroopPath "Fence"
        (StraightLine n [0; 1; 2; 3; 4; 5])
        (PitonPipelineL1ComplPropagations n)
+<<<<<<< HEAD
        [FlushThread WritesOnly [(n, 8);(n, 10); (n,16)] (n, 4)]
+=======
+       [FlushThread WritesOnly [(n, 8);(n, 10)] (n, 4)]
+>>>>>>> 3f20f6e5b1c153134b0be59fd3916403d006eb68
        PitonPerformEdgeInterpretation
      ]
  end.
@@ -193,4 +250,9 @@ Definition PitonProcessor
   : Processor :=
   let p n := mkPipeline "Piton" n [8; 10]
     (PitonMicroopPaths n) PitonPipelineStages in
+<<<<<<< HEAD
   mkProcessor "PitonProcessor" (map p (Range num_cores)).
+=======
+  mkProcessor "PitonProcessor" (map p (Range num_cores)).
+
+>>>>>>> 3f20f6e5b1c153134b0be59fd3916403d006eb68
