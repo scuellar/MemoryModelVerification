@@ -194,4 +194,4 @@ Definition PitonProcessor
   : Processor :=
   let p n := mkPipeline "Piton" n [8; 10]
     (PitonMicroopPaths n) PitonPipelineStages in
-  mkProcessor "PitonProcessor" (map p (Range num_cores)).
+  mkProcessor "PitonProcessor" (fun _ => true) (map p (Range num_cores)).

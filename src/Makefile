@@ -2,7 +2,7 @@
 
 MODULES := Debug Util StringUtil Instruction Graph Execution Graphviz \
   GraphvizCompressed Processor PipeGraph FiveStage FiveStageViCLCreateOnly \
-  SimpleFiveStage FiveStageL1Only OpenSparcT1 FiveStageSuperscalar FiveStageOOO \
+  SimpleFiveStage FiveStageL1Only FiveStageSuperscalar FiveStageOOO \
   FiveStageL1OnlyOOO OpenSPARCT1 Piton
 VS      := $(MODULES:%=%.v)
 DOCS    := $(MODULES:%=../doc/PipeGraph.%.html)

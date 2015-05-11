@@ -95,7 +95,6 @@ let processors = [
   PipeGraph.fiveStageViCLCreateOnlyProcessor (length (List.hd programs));
   PipeGraph.simpleFiveStageProcessor (length (List.hd programs));
   PipeGraph.fiveStageL1OnlyProcessor (length (List.hd programs));
-  PipeGraph.openSparcT1Processor (length (List.hd programs));
   PipeGraph.fiveStageSSProcessor (length (List.hd programs));
   PipeGraph.fiveStageOOOProcessor (length (List.hd programs));
   PipeGraph.fiveStageOOONoCacheProcessor (length (List.hd programs));
