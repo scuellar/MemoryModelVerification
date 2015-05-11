@@ -22,9 +22,9 @@
 
 Require Import List.
 Require Import String.
-Require Import PipeGraph.Util.
-Require Import PipeGraph.Instruction.
-Require Import PipeGraph.Processor.
+Require Import Util.
+Require Import Instruction.
+Require Import Processor.
 
 Import ListNotations.
 Open Scope string_scope.
@@ -137,7 +137,7 @@ Definition FiveStagePipelineMicroopPaths
          (StraightLine n [0; 1; 10; 2; 3; 4; 11] ++ StraightLine n [8; 3; 9])
          (FiveStagePipelineL1ComplPropagations n)
          [FlushThread WritesOnly [(n, 6); (n, 8)] (n, 3)] (* STB must be empty *)
-           FiveStagePipelinePerformEdgeInterpretation
+           FiveStagePipelinePerformEdgeInterpretation 
      ]
  | Write _ _ => [
      mkMicroopPath "WriteL1L2"

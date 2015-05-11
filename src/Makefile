@@ -3,7 +3,7 @@
 MODULES := Debug Util StringUtil Instruction Graph Execution Graphviz \
   GraphvizCompressed Processor PipeGraph FiveStage FiveStageViCLCreateOnly \
   SimpleFiveStage FiveStageL1Only OpenSparcT1 FiveStageSuperscalar FiveStageOOO \
-  FiveStageOOONoCache FiveStageL1OnlyOOO Piton
+  FiveStageL1OnlyOOO OpenSPARCT1 Piton
 VS      := $(MODULES:%=%.v)
 DOCS    := $(MODULES:%=../doc/PipeGraph.%.html)
 
@@ -24,10 +24,10 @@ coq: Makefile.coq
 
 doc: coq $(VS)
 	mkdir -p ../doc
-	coqdoc --html -R . PipeGraph -d ../doc $(VS)
+	coqdoc --html -d ../doc $(VS)
 
 Makefile.coq: Makefile $(VS)
-	coq_makefile -R . PipeGraph $(VS) -o Makefile.coq
+	coq_makefile  $(VS) -o Makefile.coq
 
 clean:: Makefile.coq
 	$(MAKE) -f Makefile.coq clean
