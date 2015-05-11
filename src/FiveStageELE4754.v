@@ -40,12 +40,22 @@ example of a pipeline which implements TSO. *)
 (** Each individual processor core is defined in terms of a list of pipeline
 stages.  Here, we name the stages one by one. *)
 
-Definition FiveStageLAB2PipelineStages := [
+Definition FiveStageLAB4PipelineStages := [
   (* 0 *) "Fetch";
   (* 1 *) "Decode";
-  (* 2 *) "Execute";
-  (* 3 *) "MemoryStage";
-  (* 4 *) "Writeback"].
+  (* 2 *) "Mul0";
+  (* 3 *) "Mul1";
+  (* 4 *) "Mul2";
+  (* 5 *) "Mul3";
+  (* 6 *) "Mem0";
+  (* 7 *) "Mem1";
+  (* 8 *) "Mem2";
+  (* 9 *) "Mem3";
+  (* 10 *) "ALU0";
+  (* 11 *) "ALU0";
+  (* 12 *) "ALU0";
+  (* 13 *) "ALU0";
+  (* 14 *) "Commit"].
 
 (** Each node in the PipeCheck uhb graph is defined by a triple of three
 numbers: the associated [Microop], a [PipeID], and a stage ID.  The pairing of
@@ -56,7 +66,7 @@ through location <<(n, 2)>>. *)
 
 (** ** Propagated (Intra-Location) Edges *)
 
-Definition FiveStageLAB2PipelinePropagations (n : PipeID) :=
+Definition FiveStageLAB4PipelinePropagations (n : PipeID) :=
   (** Let <<a>>, <<b>>, <<c>>, and <<d>> be [Location]s from the list above.
   ((a, b), (c, d)) here means "if there are [Microop]s [i1] and [i2] such that
   there is an edge from (i1 @ a) to (i2 @ b), then add an edge from (i1 @ c) to
@@ -64,12 +74,25 @@ Definition FiveStageLAB2PipelinePropagations (n : PipeID) :=
   [
   (** Decode is FIFO: Propagate edges from Fetch -> Decode *)
   (((n, 0), (n, 0)), ((n, 1), (n, 1)));
-  (** Execute is FIFO: Propagate edges from Decode -> Execute *)
+  (** X0 **)
   (((n, 1), (n, 1)), ((n, 2), (n, 2)));
-  (** MemoryStage is FIFO: Propagate edges from Execute -> Memory *)
+  (((n, 1), (n, 1)), ((n, 6), (n, 6)));
+  (((n, 1), (n, 1)), ((n, 10), (n, 10)));
+  (** MUL **)
   (((n, 2), (n, 2)), ((n, 3), (n, 3)));
-  (** Writeback is FIFO: Propagate edges from Memory -> Writeback *)
-  (((n, 3), (n, 3)), ((n, 4), (n, 4)))
+  (((n, 3), (n, 3)), ((n, 4), (n, 4)));
+  (((n, 4), (n, 4)), ((n, 5), (n, 5)));
+  (** MEM **)
+  (((n, 6), (n, 6)), ((n, 7), (n, 7)));
+  (((n, 7), (n, 7)), ((n, 8), (n, 8)));
+  (((n, 8), (n, 8)), ((n, 9), (n, 9)));
+  (** ALU **)
+  (((n, 10), (n, 10)), ((n, 11), (n, 11)));
+  (((n, 11), (n, 11)), ((n, 12), (n, 12)));
+  (((n, 12), (n, 12)), ((n, 13), (n, 13)));
+  (** Commit *)
+  (((n, 0), (n, 0)), ((n, 14), (n, 14)))
+  
   ].
 
 (** ** Performing Locations *)
@@ -92,26 +115,26 @@ and it gets its destination uhb node from the performing edge location
 definition of the target [Microop].
 *)
 
-Definition FiveStageLAB2PipelinePerformEdgeInterpretation :=
+Definition FiveStageLAB4PipelinePerformEdgeInterpretation :=
   (** For [Microop]s that access memory *)
   mkInterpretation
     (** RF edges go from the Memory stage of the source write to the
     Execution Stage of the target read. *)
   (fun uop_pair =>
-    [Some ((fst uop_pair, (threadID (fst uop_pair), 3)),
-           (snd uop_pair, (threadID (snd uop_pair), 2)), "RF")])
+    [Some ((fst uop_pair, (threadID (fst uop_pair), 7)),
+           (snd uop_pair, (threadID (snd uop_pair), 6)), "RF")])
     (** WS edges go from the MemoryHierarchy stage of the source write to the
     MemoryHierarchy stage of the target write. *)
   (fun uop_pair =>
-    [((fst uop_pair, (threadID (fst uop_pair), 3)),
-      (snd uop_pair, (threadID (snd uop_pair), 3)), "WS")])
+    [((fst uop_pair, (threadID (fst uop_pair), 6)),
+      (snd uop_pair, (threadID (snd uop_pair), 6)), "WS")])
     (** FR edges go from the MemoryStage of the source read to the
     MemoryHierarchy stage of the target write. *)
   (fun uop_pair =>
-    [((fst uop_pair, (threadID (fst uop_pair), 2)),
-      (snd uop_pair, (threadID (snd uop_pair), 3)), "FR")]).
+    [((fst uop_pair, (threadID (fst uop_pair), 6)),
+      (snd uop_pair, (threadID (snd uop_pair), 7)), "FR")]).
 
-Definition FiveStageLAB2PipelineSTBPerformEdgeInterpretation :=
+Definition FiveStageLAB4PipelineSTBPerformEdgeInterpretation :=
   (** Read [Microop]s that don't access memory don't use performing edges *)
   mkInterpretation
   (fun e => []) (fun e => []) (fun e => []).
@@ -140,25 +163,25 @@ are currently two choices:
   satisfy <<f b a>>. Do you mean f (i2 @ a) (i1 @ b)?
 *)
 
-Definition FiveStageLAB2PipelineMicroopPaths
+Definition FiveStageLAB4PipelineMicroopPaths
   (n : nat)
   (i : Microop)
   : list MicroopPath :=
   match access i with
   | Read  _ _ => [
      mkMicroopPath "ReadFromMemory"
-         (StraightLine n [0; 1; 2; 3; 4])
-         (FiveStageLAB2PipelinePropagations n)
-         [] (*TODO: used to be FlushThread "STBEmpty" RAWSameAddress (n, 3) (n, 2)*)
-         FiveStageLAB2PipelinePerformEdgeInterpretation
+         (StraightLine n [0; 1; 7; 8; 9; 14])
+         (FiveStageLAB4PipelinePropagations n)
+         [] (*TODO: used to be: FlushThread "STBEmpty" RAWSameAddress (n, 7) (n, 6)*)
+         FiveStageLAB4PipelinePerformEdgeInterpretation
      ]
  | Write _ _ => [
      mkMicroopPath "Write"
-       (StraightLine n [0; 1; 2; 3; 4])
-         (FiveStageLAB2PipelinePropagations n)
+       (StraightLine n [0; 1; 7; 8; 9; 14])
+         (FiveStageLAB4PipelinePropagations n)
        []
 
-       FiveStageLAB2PipelinePerformEdgeInterpretation
+       FiveStageLAB4PipelinePerformEdgeInterpretation
      ]
  | Fence _  => []
   end.
@@ -167,10 +190,10 @@ Definition FiveStageLAB2PipelineMicroopPaths
 
 (** Create a processor with <n> identical cores of the type defined above. *)
 
-Definition FiveStageLAB2Processor
+Definition FiveStageLAB4Processor
   (num_cores : nat)
   : Processor :=
-  let p n := mkPipeline "FiveStageLAB2Pipeline" n []
-    (FiveStageLAB2PipelineMicroopPaths n)
-    FiveStageLAB2PipelineStages in
-  mkProcessor "FiveStageLAB2Processor" (map p (Range num_cores)).
+  let p n := mkPipeline "FiveStageLAB4Pipeline" n []
+    (FiveStageLAB4PipelineMicroopPaths n)
+    FiveStageLAB4PipelineStages in
+  mkProcessor "FiveStageLAB4Processor" (map p (Range num_cores)).
