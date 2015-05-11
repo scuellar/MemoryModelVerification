@@ -22,9 +22,9 @@
 
 Require Import List.
 Require Import String.
-Require Import PipeGraph.Util.
-Require Import PipeGraph.Instruction.
-Require Import PipeGraph.Processor.
+Require Import Util.
+Require Import Instruction.
+Require Import Processor.
 
 Import ListNotations.
 Open Scope string_scope.

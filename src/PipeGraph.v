@@ -24,23 +24,23 @@ Require Import Arith.
 Require Import List.
 Require Import Ascii.
 Require Import String.
-Require Import PipeGraph.Debug.
-Require Import PipeGraph.Util.
-Require Import PipeGraph.Instruction.
-Require Import PipeGraph.Processor.
-Require Import PipeGraph.Graph.
-Require Import PipeGraph.Graphviz.
-Require Import PipeGraph.GraphvizCompressed.
-Require Import PipeGraph.FiveStage.
-Require Import PipeGraph.FiveStageViCLCreateOnly.
-Require Import PipeGraph.SimpleFiveStage.
-Require Import PipeGraph.FiveStageL1Only.
-Require Import PipeGraph.OpenSparcT1.
-Require Import PipeGraph.FiveStageSuperscalar.
-Require Import PipeGraph.FiveStageOOO.
-Require Import PipeGraph.FiveStageOOONoCache.
-Require Import PipeGraph.FiveStageL1OnlyOOO.
-Require Import PipeGraph.Piton.
+Require Import Debug.
+Require Import Util.
+Require Import Instruction.
+Require Import Processor.
+Require Import Graph.
+Require Import Graphviz.
+Require Import GraphvizCompressed.
+Require Import FiveStage.
+Require Import FiveStageViCLCreateOnly.
+Require Import SimpleFiveStage.
+Require Import FiveStageL1Only.
+Require Import OpenSparcT1.
+Require Import FiveStageSuperscalar.
+Require Import FiveStageOOO.
+Require Import FiveStageOOONoCache.
+Require Import FiveStageL1OnlyOOO.
+Require Import Piton.
 
 Import ListNotations.
 
