@@ -28,6 +28,7 @@ Require Import PipeGraph.Processor.
 
 Import ListNotations.
 Open Scope string_scope.
+Open Scope list_scope.
 
 (** * Pipeline Definition Example *)
 (** This is a two-core processor.  Each core has a five-stage, in-order
@@ -42,38 +43,31 @@ Definition FiveStagePipelineStages := [
   (** 3 *) "MemoryStage";
   (** 4 *) "Writeback";
   (** 5 *) "StoreBufferOnly";
-  (** 6 *) "L1 ViCL Create";
-  (** 7 *) "L1 ViCL Invalidate";
-  (** 8 *) "Issue";
-  (** 9 *) "Commit"].
+  (** 6 *) "L1 ViCL Create"].
 
 Definition FiveStagePipelinePropagations (n : PipeID) :=
   (** ((a, b), (c, d)) means "if there are instructions [i1] and [i2] such that
   there is an edge from (i1 @ a) to (i2 @ b), then add an edge from (i1 @ c) to
   (i2 @ d)" *)
   [(((n, 0), (n, 0)), ((n, 1), (n, 1)));  (* Fetch -> Decode *)
-   (((n, 1), (n, 1)), ((n, 8), (n, 8)));  (* Decode -> Issue *)
+   (((n, 1), (n, 1)), ((n, 2), (n, 2)));  (* Decode -> Execute *)
    (((n, 2), (n, 2)), ((n, 3), (n, 3)));  (* Execute -> Memory *)
    (((n, 3), (n, 3)), ((n, 4), (n, 4)));  (* Memory -> Writeback *)
-   (((n, 0), (n, 0)), ((n, 5), (n, 5)));  (* Fetch -> Commit *)
-   (((n, 5), (n, 5)), ((n, 6), (n, 5)));   (* StoreBuffer one at a time to L1 *)
-   (((n, 0), (n, 0)), ((n, 3), (n, 3)))   (* In-order mem ops *)
+   (((n, 4), (n, 4)), ((n, 5), (n, 5)));  (* Writeback -> StoreBuffer *)
+   (((n, 5), (n, 5)), ((n, 6), (n, 5)))   (* StoreBuffer one at a time to L1 *)
   ].
 
 Definition FiveStagePipelinePerformEdgeInterpretation :=
   mkInterpretation
   (fun e =>
-    (** RF: ViCL Create -> ViCL Create *)
-    [Some ((fst e, (threadID (fst e), 6)), (snd e, (threadID (snd e), 6)), "RF")
-    ])
+    (** RF: ViCL Create -> ViCL Create at L1 and L2 *)
+    [Some ((fst e, (threadID (fst e), 6)), (snd e, (threadID (snd e), 6)), "RF")])
   (fun e =>
-    (** WS: ViCL Inv -> ViCL Create *)
-    [((fst e, (threadID (fst e), 7)), (snd e, (threadID (snd e), 6)), "WS")
-    ])
+    (** WS: ViCL Create -> ViCL Create over the cross product of L1 and L2 *)
+    [((fst e, (threadID (fst e), 6)), (snd e, (threadID (snd e), 6)), "WS")])
   (fun e =>
-    (** FR: ViCL Invalidate -> ViCL Create *)
-    [((fst e, (threadID (fst e), 7)), (snd e, (threadID (snd e), 6)), "FR")
-    ]).
+    (** FR: ViCL Create -> ViCL Create over the cross product of L1 and L2 *)
+    [((fst e, (threadID (fst e), 6)), (snd e, (threadID (snd e), 6)), "FR")]).
 
 Definition FiveStagePipelineMicroopPaths
   (n : nat)
@@ -82,42 +76,42 @@ Definition FiveStagePipelineMicroopPaths
   match access i with
   | Read  _ _ => [
      mkMicroopPath "ReadFromStoreBuffer"
-         (StraightLine n [0; 1; 8; 2; 3; 4; 9])
+         (StraightLine n [0; 1; 2; 3; 4])
          (FiveStagePipelinePropagations n)
          [ReadsBetween WritesOnly (n, 3) (n, 3) (n, 6)]
          FiveStagePipelinePerformEdgeInterpretation;
      mkMicroopPath "CacheHitL1"
-         (StraightLine n [0; 1; 8; 2; 3; 4; 9])
+         (StraightLine n [0; 1; 2; 3; 4])
          (FiveStagePipelinePropagations n)
-         [ReadsBetween AnyAccess (n, 6) (n, 3) (n, 7);
-           FlushThread WritesOnly [(n, 6)] (n, 3)] (* STB must be empty *)
+         [ReadsBetween AnyAccess (n, 6) (n, 3) (n, 7)]
          FiveStagePipelinePerformEdgeInterpretation;
      mkMicroopPath "CacheMissReadL1"
-         (StraightLine n [0; 1; 8; 2; 3; 4; 9] ++ StraightLine n [6; 3; 7])
+         (StraightLine n [0; 1; 2; 3; 4] ++ StraightLine n [6; 3])
          (FiveStagePipelinePropagations n)
-         [FlushThread WritesOnly [(n, 6)] (n, 3)] (* STB must be empty *)
+         []
          FiveStagePipelinePerformEdgeInterpretation
      ]
  | Write _ _ => [
      mkMicroopPath "WriteL1"
-       (StraightLine n [0; 1; 8; 2; 3; 4; 9; 5; 6; 7])
+       (StraightLine n [0; 1; 2; 3; 4; 5; 6])
        (FiveStagePipelinePropagations n)
        []
        FiveStagePipelinePerformEdgeInterpretation
      ]
  | Fence _   => [
      mkMicroopPath "Fence"
-       (StraightLine n [0; 1; 8; 2; 3; 4; 9])
+       (StraightLine n [0; 1; 2; 3; 4])
        (FiveStagePipelinePropagations n)
-       [FlushThread WritesOnly [(n, 6)] (n, 2)]
+       []
        FiveStagePipelinePerformEdgeInterpretation
      ]
  end.
 
-Definition FiveStageL1OnlyOOOProcessor
+Definition FiveStageViCLCreateOnlyProcessor
   (num_cores : nat)
   : Processor :=
-  let p n := mkPipeline "FiveStageL1OnlyPipeline" n [6]
-    (FiveStagePipelineMicroopPaths n) FiveStagePipelineStages in
-  mkProcessor "FiveStageL1OnlyOOOProcessor" (fun _ => true) (map p (Range num_cores)).
+  let p n := mkPipeline "FiveStageViCLCreateOnlyPipeline" n []
+    (FiveStagePipelineMicroopPaths n)
+    FiveStagePipelineStages in
+  mkProcessor "FiveStageViCLCreateOnlyProcessor" (fun _ => true) (map p (Range num_cores)).
 

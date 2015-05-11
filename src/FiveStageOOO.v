@@ -170,5 +170,5 @@ Definition FiveStageOOOProcessor
   : Processor :=
   let p n := mkPipeline "FiveStagePipeline" n [6; 8]
     (FiveStagePipelineMicroopPaths n) FiveStagePipelineStages in
-  mkProcessor "FiveStageOOOProcessor" (map p (Range num_cores)).
+  mkProcessor "FiveStageOOOProcessor" (fun _ => true) (map p (Range num_cores)).
 

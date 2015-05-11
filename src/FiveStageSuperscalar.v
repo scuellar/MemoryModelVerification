@@ -266,10 +266,10 @@ Definition FiveStagePipelineMicroopPaths
      ]
  end.
 
-Definition FiveStageSSProcessor
+Definition FiveStageSSProcessor 
   (num_cores : nat)
   : Processor :=
   let p n := mkPipeline "FiveStagePipeline" n [6; 8]
     (FiveStagePipelineMicroopPaths n) FiveStagePipelineStages in
-  mkProcessor "FiveStageSSProcessor" (map p (Range num_cores)).
+  mkProcessor "FiveStageSSProcessor" (fun _ => true) (map p (Range num_cores)).
 
