@@ -135,7 +135,8 @@ Definition OpenSPARCT1MicroopPaths
      mkMicroopPath "Fence"
        (StraightLine n [0; 1; 2; 3; 4; 5])
        (OpenSPARCT1PipelineComplPropagations n)
-       [FlushThread WritesOnly [(n, 8);(n, 10)] (n, 4)]
+       [FlushThread WritesOnly [(n, 8)] (n, 4);
+        FlushThread WritesOnly [(n, 10)] (n, 4)]
        OpenSPARCT1PerformEdgeInterpretation
      ]
  end.
@@ -177,7 +178,7 @@ Definition SourcingConstraints
 Definition OpenSPARCT1Processor
   (num_cores : nat)
   : Processor :=
-  let p n := mkPipeline "OpenSPARCT1" n [8;10]
+  let p n := mkPipeline "OpenSPARCT1" n [10]
     (OpenSPARCT1MicroopPaths n) OpenSPARCT1PipelineStages in
   mkProcessor "OpenSPARCT1Processor" SourcingConstraints (map p (Range num_cores)).
 
