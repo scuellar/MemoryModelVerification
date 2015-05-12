@@ -61,8 +61,7 @@ Definition OpenSPARCT1PipelineComplPropagations (n : PipeID) :=
    (((n, 3), (n, 3)), ((n, 4), (n, 4)));  (* Memory -> Writeback *)
    (((n, 4), (n, 4)), ((n, 5), (n, 5)));  (* Writeback -> StoreBuffer *)
    (((n, 5), (n, 5)), ((n, 6), (n, 6)));  (* Writeback -> StoreBuffer *)
-   (((n, 6), (n, 6)), ((n, 8), (n, 6)));  (* StoreBuffer one at a time to L2 *)
-   (((n, 6), (n, 6)), ((n, 10), (n, 6)))  (* StoreBuffer one at a time to L2 *)
+   (((n, 6), (n, 6)), ((n, 8), (n, 6)))
   ].
 
 Definition LoadMissPipelineComplPropagations (n : PipeID) :=
@@ -125,8 +124,9 @@ Definition OpenSPARCT1MicroopPaths
            OpenSPARCT1PerformEdgeInterpretation
      ]
  | Write _ _ => [
-     mkMicroopPath "WriteL1L2"
-       (StraightLine n [0; 1; 2; 3; 4; 5; 6; 8; 9; 10; 11])
+     mkMicroopPath "WriteL1L2" (*Acording to Tri the write doesn't update L1!*)
+       (*The order corresponds to write-through*)
+       (StraightLine n [0; 1; 2; 3; 4; 5; 6; 10; 8; 9; 11])
        (OpenSPARCT1PipelineComplPropagations n)
        []
        OpenSPARCT1PerformEdgeInterpretation
@@ -178,7 +178,7 @@ Definition SourcingConstraints
 Definition OpenSPARCT1Processor
   (num_cores : nat)
   : Processor :=
-  let p n := mkPipeline "OpenSPARCT1" n [10]
+  let p n := mkPipeline "OpenSPARCT1" n [10] (*[8; 10]*)
     (OpenSPARCT1MicroopPaths n) OpenSPARCT1PipelineStages in
   mkProcessor "OpenSPARCT1Processor" SourcingConstraints (map p (Range num_cores)).
 
