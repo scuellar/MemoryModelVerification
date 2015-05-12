@@ -61,7 +61,8 @@ Definition OpenSPARCT1PipelineComplPropagations (n : PipeID) :=
    (((n, 3), (n, 3)), ((n, 4), (n, 4)));  (* Memory -> Writeback *)
    (((n, 4), (n, 4)), ((n, 5), (n, 5)));  (* Writeback -> StoreBuffer *)
    (((n, 5), (n, 5)), ((n, 6), (n, 6)));  (* Writeback -> StoreBuffer *)
-   (((n, 6), (n, 6)), ((n, 8), (n, 6)))  (* StoreBuffer one at a time to L2 *)
+   (((n, 6), (n, 6)), ((n, 8), (n, 6)));  (* StoreBuffer one at a time to L2 *)
+   (((n, 6), (n, 6)), ((n, 10), (n, 6)))  (* StoreBuffer one at a time to L2 *)
   ].
 
 Definition LoadMissPipelineComplPropagations (n : PipeID) :=
@@ -118,7 +119,7 @@ Definition OpenSPARCT1MicroopPaths
            OpenSPARCT1PerformEdgeInterpretation;
      mkMicroopPath "CacheMissLMQMissL2"
          (StraightLine n [0; 1; 2; 3; 4; 7; 5]
-          ++ StraightLine n [10; 8; 7; 9] ++ StraightLine n [10; 7; 9] )
+          ++ StraightLine n [10; 8; 7; 9] ++ StraightLine n [10; 7; 11] )
          (LoadMissPipelineComplPropagations n)
          [FlushThread WritesOnly [(n, 8); (n, 10)] (n, 4)] (* STB must be empty *)
            OpenSPARCT1PerformEdgeInterpretation
@@ -139,6 +140,7 @@ Definition OpenSPARCT1MicroopPaths
      ]
  end.
 
+Definition LastViCL:= 10.
 Definition SourcingConstraints
   (sourcing : (option (GraphNode * GraphNode) * (GraphNode * GraphNode)))
   : bool :=
@@ -159,15 +161,15 @@ Definition SourcingConstraints
       | true =>
         (* Filter based on rules for ops on the same core *)
         (* Is the ViCL source one level below the ViCL being sourced? *)
-          orb ( beq_nat (l1b - l2b) 2) 
+          orb ( beq_nat (l1b - l2b) 2)
         (* Is this the lowest ViCL level? If so, let it slide by abstraction. *)
-          (andb (beq_nat l1b l2b) (beq_nat l1b 8))
+          (andb (beq_nat l1b l2b) (beq_nat l1b LastViCL))
         (* Otherwise this isn't a valid case. *)
          
       | false => 
         (* Filter based on rules for ops on different cores *)
         (* Is the ViCL source at the same level as the ViCL being sourced? *)
-          beq_nat l1b l2b
+          (andb (beq_nat l2b LastViCL) (beq_nat l1b LastViCL))
      end
   end.
 
@@ -175,7 +177,7 @@ Definition SourcingConstraints
 Definition OpenSPARCT1Processor
   (num_cores : nat)
   : Processor :=
-  let p n := mkPipeline "OpenSPARCT1" n [8]
+  let p n := mkPipeline "OpenSPARCT1" n [8;10]
     (OpenSPARCT1MicroopPaths n) OpenSPARCT1PipelineStages in
   mkProcessor "OpenSPARCT1Processor" SourcingConstraints (map p (Range num_cores)).
 

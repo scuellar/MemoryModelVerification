@@ -39,6 +39,7 @@ Require Import FiveStageSuperscalar.
 Require Import FiveStageOOO.
 Require Import FiveStageOOONoCache.
 Require Import FiveStageL1OnlyOOO.
+Require Import OpenSPARCT1.
 Require Import Piton.
 
 Import ListNotations.
@@ -97,5 +98,5 @@ Extract Inlined Constant ascii_dec => "(=)".
 Extraction "PipeGraph.ml" ProgramGraphs
   GraphsOfExecutions CompressedGraphsOfExecutions IsObservable
   FiveStagePipelineProcessor FiveStageViCLCreateOnlyProcessor
-  SimpleFiveStageProcessor FiveStageL1OnlyProcessor FiveStageSSProcessor FiveStageOOOProcessor FiveStageOOONoCacheProcessor FiveStageL1OnlyOOOProcessor PitonProcessor myProgram.
+  SimpleFiveStageProcessor FiveStageL1OnlyProcessor FiveStageSSProcessor FiveStageOOOProcessor FiveStageOOONoCacheProcessor FiveStageL1OnlyOOOProcessor OpenSPARCT1Processor PitonProcessor myProgram.
 

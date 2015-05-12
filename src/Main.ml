@@ -99,6 +99,7 @@ let processors = [
   PipeGraph.fiveStageOOOProcessor (length (List.hd programs));
   PipeGraph.fiveStageOOONoCacheProcessor (length (List.hd programs));
   PipeGraph.fiveStageL1OnlyOOOProcessor (length (List.hd programs));
+  PipeGraph.openSPARCT1Processor (length (List.hd programs));
   PipeGraph.pitonProcessor (length (List.hd programs))
   ]
 

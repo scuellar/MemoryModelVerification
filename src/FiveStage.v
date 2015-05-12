@@ -77,9 +77,9 @@ Definition FiveStagePipelinePerformEdgeInterpretation :=
   mkInterpretation
   (fun e =>
     (** RF: ViCL Create -> ViCL Create at L1 and L2 *)
-    [Some ((fst e, (threadID (fst e), 6)), (snd e, (threadID (snd e), 6)), "RF");
+    [(*Some ((fst e, (threadID (fst e), 6)), (snd e, (threadID (snd e), 6)), "RF");
      Some ((fst e, (threadID (fst e), 8)), (snd e, (threadID (snd e), 6)), "RF_Local");
-     Some ((fst e, (threadID (fst e), 8)), (snd e, (threadID (snd e), 8)), "RF")
+     Some ((fst e, (threadID (fst e), 8)), (snd e, (threadID (snd e), 8)), "RF")*)
     ])
   (fun e =>
     (** WS: ViCL Inv -> ViCL Create over the cross product of L1 and L2 *)
@@ -90,10 +90,10 @@ Definition FiveStagePipelinePerformEdgeInterpretation :=
     ])
   (fun e =>
     (** FR: ViCL Invalidate -> ViCL Create over the cross product of L1 and L2 *)
-    [((fst e, (threadID (fst e), 7)), (snd e, (threadID (snd e), 6)), "FR");
+    [(*((fst e, (threadID (fst e), 7)), (snd e, (threadID (snd e), 6)), "FR");
      ((fst e, (threadID (fst e), 9)), (snd e, (threadID (snd e), 6)), "FR");
      ((fst e, (threadID (fst e), 7)), (snd e, (threadID (snd e), 8)), "FR");
-     ((fst e, (threadID (fst e), 9)), (snd e, (threadID (snd e), 8)), "FR")
+     ((fst e, (threadID (fst e), 9)), (snd e, (threadID (snd e), 8)), "FR")*)
     ]).
 
 Definition FiveStagePipelineMicroopPaths
